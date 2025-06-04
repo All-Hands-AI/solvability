@@ -19,6 +19,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.inspection import permutation_importance
 from sklearn.utils.validation import check_is_fitted
 
+from solvability.models.config import LLMConfig
 from solvability.models.featurizer import Feature, Featurizer
 from solvability.models.importance_strategy import ImportanceStrategy
 from solvability.models.report import SolvabilityReport
@@ -128,17 +129,18 @@ class SolvabilityClassifier(BaseModel):
         except NotFittedError:
             return False
 
-    def transform(self, issues: pd.Series) -> pd.DataFrame:
+    def transform(self, issues: pd.Series, llm_config: LLMConfig | None = None) -> pd.DataFrame:
         """
         Transform the input issues using the featurizer.
 
         Args:
             issues: A pandas Series containing the issue descriptions.
+            llm_config: Optional LLM configuration to use for feature extraction.
 
         Returns:
             pd.DataFrame: A DataFrame containing the transformed features.
         """
-        feature_embeddings = self.featurizer.embed_batch(issues, samples=self.samples)
+        feature_embeddings = self.featurizer.embed_batch(issues, samples=self.samples, llm_config=llm_config)
         df = pd.DataFrame(embedding.to_row() for embedding in feature_embeddings)
 
         # Split into two sets of columns -- those that correspond to a featre and
@@ -151,7 +153,7 @@ class SolvabilityClassifier(BaseModel):
 
         return self.features_
 
-    def fit(self, issues: pd.Series, labels: pd.Series) -> SolvabilityClassifier:
+    def fit(self, issues: pd.Series, labels: pd.Series, llm_config: LLMConfig | None = None) -> SolvabilityClassifier:
         """
         Fit the classifier to the input issues and labels.
 
@@ -160,10 +162,12 @@ class SolvabilityClassifier(BaseModel):
 
             labels: A pandas Series containing the labels (0 or 1) for each issue.
 
+            llm_config: Optional LLM configuration to use for feature extraction.
+
         Returns:
             SolvabilityClassifier: The fitted classifier.
         """
-        features = self.transform(issues)
+        features = self.transform(issues, llm_config=llm_config)
         self.classifier.fit(features, labels)
 
         self._classifier_attrs["feature_importances_"] = self._importance(
@@ -172,22 +176,22 @@ class SolvabilityClassifier(BaseModel):
 
         return self
 
-    def predict_proba(self, issues: pd.Series) -> np.ndarray:
+    def predict_proba(self, issues: pd.Series, llm_config: LLMConfig | None = None) -> np.ndarray:
         """
         Predict the solvability of the input issues by returning the probabilities that the issues are solvable.
         """
-        features = self.transform(issues)
+        features = self.transform(issues, llm_config=llm_config)
         scores = self.classifier.predict_proba(features)
 
         self._classifier_attrs["feature_importances_"] = self._importance(features, scores)
 
         return scores
 
-    def predict(self, issues: pd.Series) -> np.ndarray:
+    def predict(self, issues: pd.Series, llm_config: LLMConfig | None = None) -> np.ndarray:
         """
         Predict the solvability of the input issues by returning the labels (0 or 1).
         """
-        probabilities = self.predict_proba(issues)
+        probabilities = self.predict_proba(issues, llm_config=llm_config)
         labels = probabilities[:, 1] >= 0.5
         return labels
 
@@ -261,12 +265,13 @@ class SolvabilityClassifier(BaseModel):
 
         raise ValueError("The classifier must be a RandomForestClassifier or a JSON-compatible dictionary.")
 
-    def solvability_report(self, issue: str, **kwargs: Any) -> SolvabilityReport:
+    def solvability_report(self, issue: str, llm_config: LLMConfig | None = None, **kwargs: Any) -> SolvabilityReport:
         """
         Generate a solvability report for the given issue.
 
         Args:
             issue: The issue description for which to generate the report.
+            llm_config: Optional LLM configuration to use for feature extraction.
             kwargs: Additional metadata to include in the report.
 
         Returns:
@@ -275,7 +280,7 @@ class SolvabilityClassifier(BaseModel):
         if not self.is_fitted:
             raise ValueError("The classifier must be fitted before generating a report.")
 
-        scores = self.predict_proba(pd.Series([issue]))
+        scores = self.predict_proba(pd.Series([issue]), llm_config=llm_config)
 
         return SolvabilityReport(
             identifier=self.identifier,
@@ -300,8 +305,8 @@ class SolvabilityClassifier(BaseModel):
             **self.cost_.iloc[0].to_dict(),
         )
 
-    def __call__(self, issue: str, **kwargs: Any) -> SolvabilityReport:
+    def __call__(self, issue: str, llm_config: LLMConfig | None = None, **kwargs: Any) -> SolvabilityReport:
         """
         Generate a solvability report for the given issue.
         """
-        return self.solvability_report(issue, **kwargs)
+        return self.solvability_report(issue, llm_config=llm_config, **kwargs)
