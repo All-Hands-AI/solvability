@@ -1,5 +1,4 @@
 from solvability.models.classifier import SolvabilityClassifier
-from solvability.models.document import Document, DocumentSplit
 from solvability.models.featurizer import (
     EmbeddingDimension,
     Feature,
@@ -14,8 +13,6 @@ __all__ = [
     "EmbeddingDimension",
     "FeatureEmbedding",
     "Featurizer",
-    "Document",
-    "DocumentSplit",
     "ImportanceStrategy",
     "SolvabilityClassifier",
     "SolvabilityReport",
