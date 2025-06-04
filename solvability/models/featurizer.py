@@ -40,7 +40,7 @@ class FeatureEmbedding(BaseModel):
         """
         Basis vectors for the embedding.
         """
-        dims = set()
+        dims: set[str] = set()
         for sample in self.samples:
             dims.update(sample.keys())
         return list(dims)
@@ -102,7 +102,7 @@ class Featurizer(BaseModel):
             set_cache_content: Whether to set cache content for the message. If only one sample is requested, this
             should be set to False.
         """
-        message = {
+        message: dict[str, Any] = {
             "role": "user",
             "content": f"{self.message_prefix}{issue_description}",
         }
@@ -159,12 +159,12 @@ class Featurizer(BaseModel):
             stop_time = time.time()
 
             latency = stop_time - start_time
-            features = response.choices[0].message.tool_calls[0].function.arguments
+            features = response.choices[0].message.tool_calls[0].function.arguments # type: ignore[index, union-attr]
             embedding = json.loads(features)
 
             embedding_samples.append(embedding)
-            prompt_tokens += response.usage.prompt_tokens
-            completion_tokens += response.usage.completion_tokens
+            prompt_tokens += response.usage.prompt_tokens # type: ignore[union-attr, attr-defined]
+            completion_tokens += response.usage.completion_tokens # type: ignore[union-attr, attr-defined]
             response_latency += latency
 
         return FeatureEmbedding(
@@ -192,7 +192,7 @@ class Featurizer(BaseModel):
             }
 
             # Collect results in order
-            results = [None] * len(issue_descriptions)
+            results: list[FeatureEmbedding] = [None] * len(issue_descriptions)  # type: ignore[list-item]
             for future in as_completed(future_to_desc):
                 index = future_to_desc[future]
                 results[index] = future.result()

@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import click
@@ -51,4 +52,4 @@ def description(model_path: Path, feature_name: str):
             return
 
     rich.print(f"Feature '{feature_name}' not found.")
-    click.exit(1)
+    sys.exit(1)

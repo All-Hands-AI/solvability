@@ -53,4 +53,4 @@ class LLMConfig(BaseModel):
         values = dotenv.dotenv_values()
         # Filter out None values and convert to proper types
         filtered_values = {k: v for k, v in values.items() if v is not None}
-        return LLMConfig(**filtered_values)
+        return LLMConfig.model_validate(filtered_values)

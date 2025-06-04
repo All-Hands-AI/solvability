@@ -5,11 +5,13 @@ from solvability.models.config import LLMConfig
 
 def completion(
     *args, llm_config: LLMConfig | None = None, **kwargs
-) -> litellm.ModelResponse | litellm.CustomStreamWrapper:
+) -> litellm.ModelResponse:
     if llm_config is None:
         llm_config = LLMConfig.from_dotenv()
 
-    return litellm.completion(*args, **kwargs, **llm_config.as_kwargs())
+    response = litellm.completion(*args, **kwargs, **llm_config.as_kwargs())
+    assert isinstance(response, litellm.ModelResponse), "Expected a ModelResponse from litellm.completion"
+    return response
 
 
 def completion_cost(
