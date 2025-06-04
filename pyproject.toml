@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "solvability"
 version = "0.1.0"
@@ -10,7 +14,46 @@ dependencies = [
     "numpy>=2.2.6",
     "pandas>=2.2.3",
     "pydantic>=2.11.5",
-    "pytest>=8.4.0",
     "scikit-learn>=1.6.1",
     "shap>=0.47.2",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-cov",
+    "black",
+    "ruff",
+    "mypy",
+]
+
+[project.scripts]
+solvability = "solvability.cli:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["solvability"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"solvability/data" = "solvability/data"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+select = ["E", "F", "I", "N", "W"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
