@@ -2,14 +2,14 @@
 Shared fixtures for all tests.
 """
 from typing import Any
-import pytest
-import numpy as np
-
 from unittest.mock import MagicMock
+
+import numpy as np
+import pytest
 from sklearn.ensemble import RandomForestClassifier
 
 from solvability.models.classifier import SolvabilityClassifier
-from solvability.models.featurizer import Feature, Featurizer, FeatureEmbedding
+from solvability.models.featurizer import Feature, FeatureEmbedding, Featurizer
 
 
 @pytest.fixture

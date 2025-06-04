@@ -1,24 +1,26 @@
 from __future__ import annotations
 
-import pickle
 import base64
+import pickle
 from typing import Any
+
+import numpy as np
+import pandas as pd
+import shap
 from pydantic import (
     BaseModel,
+    PrivateAttr,
     field_serializer,
     field_validator,
-    PrivateAttr,
     model_validator,
 )
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.inspection import permutation_importance
 from sklearn.utils.validation import check_is_fitted
+
 from solvability.models.featurizer import Feature, Featurizer
 from solvability.models.importance_strategy import ImportanceStrategy
-import numpy as np
-import pandas as pd
-import shap
 from solvability.models.report import SolvabilityReport
 
 

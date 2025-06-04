@@ -5,7 +5,9 @@ Assumes that classifiers are stored adjacent to this file in the `solvability/da
 """
 
 from pathlib import Path
+
 from solvability.models.classifier import SolvabilityClassifier
+
 
 def load_classifier(name: str) -> SolvabilityClassifier:
     """
