@@ -116,7 +116,7 @@ class SolvabilityClassifier(BaseModel):
                 "No SolvabilityClassifier methods that produce feature importances (.fit(), .predict_proba(), and "
                 ".predict()) have been called."
             )
-        return self._classifier_attrs["feature_importances_"]
+        return self._classifier_attrs["feature_importances_"]  # type: ignore[no-any-return]
 
     @property
     def is_fitted(self) -> bool:
@@ -185,7 +185,7 @@ class SolvabilityClassifier(BaseModel):
 
         self._classifier_attrs["feature_importances_"] = self._importance(features, scores)
 
-        return scores
+        return scores  # type: ignore[no-any-return]
 
     def predict(self, issues: pd.Series, llm_config: LLMConfig | None = None) -> np.ndarray:
         """
@@ -203,7 +203,7 @@ class SolvabilityClassifier(BaseModel):
             case ImportanceStrategy.SHAP:
                 explainer = shap.TreeExplainer(self.classifier)
                 shap_values = explainer.shap_values(features)
-                return shap_values.mean(axis=0)[:, 1]
+                return shap_values.mean(axis=0)[:, 1]  # type: ignore[no-any-return]
 
             case ImportanceStrategy.PERMUTATION:
                 result = permutation_importance(
@@ -213,10 +213,10 @@ class SolvabilityClassifier(BaseModel):
                     n_repeats=10,
                     random_state=self.random_state,
                 )
-                return result.importances_mean
+                return result.importances_mean  # type: ignore[no-any-return]
 
             case ImportanceStrategy.IMPURITY:
-                return self.classifier.feature_importances_
+                return self.classifier.feature_importances_  # type: ignore[no-any-return]
 
     def add_features(self, features: list[Feature]) -> SolvabilityClassifier:
         """

@@ -25,6 +25,7 @@ dev = [
     "pytest-cov",
     "ruff",
     "mypy",
+    "types-requests>=2.32.0.20250602",
 ]
 
 [project.scripts]
@@ -57,7 +58,3 @@ warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
 
-[dependency-groups]
-dev = [
-    "types-requests>=2.32.0.20250602",
-]

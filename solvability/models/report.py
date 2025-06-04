@@ -110,4 +110,4 @@ Keep the length short, and include recommendations as a simple list.
 """
 
         response = completion(messages=[{"role": "user", "content": prompt}], llm_config=llm_config)
-        return response.choices[0].message.content
+        return response.choices[0].message.content  # type: ignore[union-attr, return-value]
