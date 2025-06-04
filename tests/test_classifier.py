@@ -72,7 +72,8 @@ def test_transform_sets_classifier_attrs(solvability_classifier):
     # Make sure the cost attr exists and has all the columns we'd expect.
     assert solvability_classifier.cost_ is not None
     assert isinstance(solvability_classifier.cost_, pd.DataFrame)
-    assert "cost" in solvability_classifier.cost_.columns
+    assert "prompt_tokens" in solvability_classifier.cost_.columns
+    assert "completion_tokens" in solvability_classifier.cost_.columns
     assert "response_latency" in solvability_classifier.cost_.columns
 
 
@@ -203,6 +204,7 @@ def test_solvability_report_well_formed(solvability_classifier):
     assert set(report.feature_importances.keys()) == set(solvability_classifier.featurizer.feature_identifiers())
     assert report.random_state == solvability_classifier.random_state
     assert report.created_at is not None
-    assert report.cost >= 0
+    assert report.prompt_tokens >= 0
+    assert report.completion_tokens >= 0
     assert report.response_latency >= 0
     assert report.metadata is None

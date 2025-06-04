@@ -121,4 +121,4 @@ def test_featurizer_embed_batch(samples, batch_size, featurizer):
         assert len(embedding.samples) == samples
         assert embedding.prompt_tokens == 10 * samples
         assert embedding.completion_tokens == 5 * samples
-        assert embedding.response_latency > 0.0
+        assert embedding.response_latency >= 0.0

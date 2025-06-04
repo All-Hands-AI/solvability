@@ -30,9 +30,14 @@ class SolvabilityReport(BaseModel):
     [0, 1]-valued score indicating the likelihood of the issue being solvable.
     """
 
-    cost: float
+    prompt_tokens: int
     """
-    Total cost of API calls made to generate the features.
+    Total number of prompt tokens used in API calls made to generate the features.
+    """
+
+    completion_tokens: int
+    """
+    Total number of completion tokens used in API calls made to generate the features.
     """
 
     response_latency: float

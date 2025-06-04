@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import dotenv
 import litellm
 from pydantic import BaseModel, SecretStr
@@ -28,11 +30,11 @@ class LLMConfig(BaseModel):
         """
         return self.thinking_budget is not None and litellm.supports_reasoning(self.model)
 
-    def as_kwargs(self) -> dict[str, str]:
+    def as_kwargs(self) -> dict[str, Any]:
         """
         Convert the configuration to a dictionary of keyword arguments. Can be passed to the LiteLLM completion calls.
         """
-        results = {"model": self.model}
+        results: dict[str, Any] = {"model": self.model}
         if self.base_url:
             results["base_url"] = self.base_url
         results["api_key"] = self.api_key.get_secret_value()
@@ -48,4 +50,7 @@ class LLMConfig(BaseModel):
         """
         Create an LLMConfig instance from the environment variables.
         """
-        return LLMConfig(**dotenv.dotenv_values())
+        values = dotenv.dotenv_values()
+        # Filter out None values and convert to proper types
+        filtered_values = {k: v for k, v in values.items() if v is not None}
+        return LLMConfig(**filtered_values)
