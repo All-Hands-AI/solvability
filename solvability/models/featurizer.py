@@ -2,10 +2,12 @@ import json
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
+
 from pydantic import BaseModel
 
 from solvability.llm import completion
 from solvability.models.config import LLMConfig
+
 
 class Feature(BaseModel):
     identifier: str
@@ -18,11 +20,14 @@ class Feature(BaseModel):
             "description": self.description,
         }
 
+
 class EmbeddingDimension(BaseModel):
     feature_id: str
     result: bool
 
+
 EmbeddingSample = dict[str, bool]
+
 
 class FeatureEmbedding(BaseModel):
     samples: list[EmbeddingSample]
@@ -56,7 +61,7 @@ class FeatureEmbedding(BaseModel):
             "completion_tokens": self.completion_tokens,
             **{dimension: self.coefficient(dimension) for dimension in self.dimensions},
         }
-    
+
     def sample_entropy(self) -> dict[str, float]:
         """
         Calculate the entropy of the samples for each dimension.
@@ -75,6 +80,7 @@ class FeatureEmbedding(BaseModel):
             entropy[dimension] = entropy_value
         return entropy
 
+
 class Featurizer(BaseModel):
     system_prompt: str
     message_prefix: str
@@ -85,14 +91,14 @@ class Featurizer(BaseModel):
             "role": "system",
             "content": self.system_prompt,
         }
-    
+
     def user_message(self, issue_description: str, set_cache: bool = True) -> dict[str, Any]:
         """
         User message that captures the issue description and any other non-system prompting.
 
         Args:
             issue_description: The description of the issue.
-            
+
             set_cache_content: Whether to set cache content for the message. If only one sample is requested, this should be set to False.
         """
         message = {
@@ -102,7 +108,7 @@ class Featurizer(BaseModel):
         if set_cache:
             message["cache_control"] = {"type": "ephemeral"}
         return message
-    
+
     @property
     def tool_choice(self) -> dict[str, Any]:
         return {
@@ -119,15 +125,14 @@ class Featurizer(BaseModel):
                 "description": "Record the features present in the issue.",
                 "parameters": {
                     "type": "object",
-                    "properties": {
-                        feature.identifier: feature.to_tool_description_field
-                        for feature in self.features
-                    },
+                    "properties": {feature.identifier: feature.to_tool_description_field for feature in self.features},
                 },
             },
         }
 
-    def embed(self, issue_description: str, temperature: float = 1.0, samples: int = 10, llm_config: LLMConfig | None = None) -> FeatureEmbedding:
+    def embed(
+        self, issue_description: str, temperature: float = 1.0, samples: int = 10, llm_config: LLMConfig | None = None
+    ) -> FeatureEmbedding:
         """
         Generate an embedding for the issue description.
 
@@ -168,25 +173,31 @@ class Featurizer(BaseModel):
             completion_tokens=completion_tokens,
         )
 
-    def embed_batch(self, issue_descriptions: list[str], temperature: float = 1.0, samples: int = 10, llm_config: LLMConfig | None = None) -> list[FeatureEmbedding]:
+    def embed_batch(
+        self,
+        issue_descriptions: list[str],
+        temperature: float = 1.0,
+        samples: int = 10,
+        llm_config: LLMConfig | None = None,
+    ) -> list[FeatureEmbedding]:
         """
         Generate embeddings for a batch of issue descriptions.
         """
         with ThreadPoolExecutor() as executor:
             # Submit all tasks
             future_to_desc = {
-                executor.submit(self.embed, desc, temperature, samples, llm_config=llm_config): i 
+                executor.submit(self.embed, desc, temperature, samples, llm_config=llm_config): i
                 for i, desc in enumerate(issue_descriptions)
             }
-            
+
             # Collect results in order
             results = [None] * len(issue_descriptions)
             for future in as_completed(future_to_desc):
                 index = future_to_desc[future]
                 results[index] = future.result()
-            
+
             return results
-            
+
     def feature_identifiers(self) -> list[str]:
         """
         Get the identifiers of the features.

@@ -1,11 +1,11 @@
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.ensemble import RandomForestClassifier
 
 from solvability.models.classifier import SolvabilityClassifier
-from solvability.models.importance_strategy import ImportanceStrategy
 from solvability.models.featurizer import Feature
+from solvability.models.importance_strategy import ImportanceStrategy
 
 
 @pytest.mark.parametrize("random_state", [None, 42])
@@ -198,13 +198,9 @@ def test_solvability_report_well_formed(solvability_classifier):
     assert report.issue == issues.iloc[0]
     assert 0 <= report.score <= 1
     assert report.samples == solvability_classifier.samples
-    assert set(report.features.keys()) == set(
-        solvability_classifier.featurizer.feature_identifiers()
-    )
+    assert set(report.features.keys()) == set(solvability_classifier.featurizer.feature_identifiers())
     assert report.importance_strategy == solvability_classifier.importance_strategy
-    assert set(report.feature_importances.keys()) == set(
-        solvability_classifier.featurizer.feature_identifiers()
-    )
+    assert set(report.feature_importances.keys()) == set(solvability_classifier.featurizer.feature_identifiers())
     assert report.random_state == solvability_classifier.random_state
     assert report.created_at is not None
     assert report.cost >= 0

@@ -1,6 +1,8 @@
 import importlib
-import click
 from pathlib import Path
+
+import click
+
 
 @click.group()
 @click.option(
@@ -15,9 +17,7 @@ def cli(ctx: click.Context, model_path: Path | None):
     Command line interface for the OpenHands solvability classifier.
     """
     if model_path is None:
-        raise click.BadParameter(
-            "Model path is required. Please provide a valid path to a solvability classifier."
-        )
+        raise click.BadParameter("Model path is required. Please provide a valid path to a solvability classifier.")
     ctx.obj = model_path
 
 

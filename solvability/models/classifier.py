@@ -61,9 +61,11 @@ class SolvabilityClassifier(BaseModel):
 
     _classifier_attrs: dict[str, Any] = PrivateAttr(default_factory=dict)
     """
-    Private dictionary to store the results of secondary classifier calculations. Use the `attr_` properties to access the values.
+    Private dictionary to store the results of secondary classifier calculations. Use the `attr_` properties to access
+    the values.
 
-    This field is never serialized, so the values will not persist when using the standard model dumping/loading methods.
+    This field is never serialized, so the values will not persist when using the standard model dumping/loading
+    methods.
     """
 
     model_config = {
@@ -78,9 +80,7 @@ class SolvabilityClassifier(BaseModel):
         # If both random states are set, they definitely need to agree.
         if self.random_state is not None and self.classifier.random_state is not None:
             if self.random_state != self.classifier.random_state:
-                raise ValueError(
-                    "The random state of the classifier and the top-level classifier must agree."
-                )
+                raise ValueError("The random state of the classifier and the top-level classifier must agree.")
 
         # Otherwise, we'll always set the classifier's random state to the top-level one.
         self.classifier.random_state = self.random_state
@@ -93,9 +93,7 @@ class SolvabilityClassifier(BaseModel):
         Get the features used by the classifier for the most recent inputs.
         """
         if "features_" not in self._classifier_attrs:
-            raise ValueError(
-                "SolvabilityClassifier.transform() has not yet been called."
-            )
+            raise ValueError("SolvabilityClassifier.transform() has not yet been called.")
         return self._classifier_attrs["features_"]
 
     @property
@@ -104,9 +102,7 @@ class SolvabilityClassifier(BaseModel):
         Get the cost of the classifier for the most recent inputs.
         """
         if "cost_" not in self._classifier_attrs:
-            raise ValueError(
-                "SolvabilityClassifier.transform() has not yet been called."
-            )
+            raise ValueError("SolvabilityClassifier.transform() has not yet been called.")
         return self._classifier_attrs["cost_"]
 
     @property
@@ -116,7 +112,8 @@ class SolvabilityClassifier(BaseModel):
         """
         if "feature_importances_" not in self._classifier_attrs:
             raise ValueError(
-                "No SolvabilityClassifier methods that produce feature importances (.fit(), .predict_proba(), and .predict()) have been called."
+                "No SolvabilityClassifier methods that produce feature importances (.fit(), .predict_proba(), and "
+                ".predict()) have been called."
             )
         return self._classifier_attrs["feature_importances_"]
 
@@ -177,14 +174,12 @@ class SolvabilityClassifier(BaseModel):
 
     def predict_proba(self, issues: pd.Series) -> np.ndarray:
         """
-        Predict the solvability of the input issues by returning the probabilities that the issues are not solvable / solvable.
+        Predict the solvability of the input issues by returning the probabilities that the issues are solvable.
         """
         features = self.transform(issues)
         scores = self.classifier.predict_proba(features)
 
-        self._classifier_attrs["feature_importances_"] = self._importance(
-            features, scores
-        )
+        self._classifier_attrs["feature_importances_"] = self._importance(features, scores)
 
         return scores
 
@@ -264,9 +259,7 @@ class SolvabilityClassifier(BaseModel):
             except Exception as e:
                 raise ValueError(f"Failed to decode the classifier: {e}")
 
-        raise ValueError(
-            "The classifier must be a RandomForestClassifier or a JSON-compatible dictionary."
-        )
+        raise ValueError("The classifier must be a RandomForestClassifier or a JSON-compatible dictionary.")
 
     def solvability_report(self, issue: str, **kwargs: Any) -> SolvabilityReport:
         """
@@ -280,9 +273,7 @@ class SolvabilityClassifier(BaseModel):
             SolvabilityReport: The generated solvability report.
         """
         if not self.is_fitted:
-            raise ValueError(
-                "The classifier must be fitted before generating a report."
-            )
+            raise ValueError("The classifier must be fitted before generating a report.")
 
         scores = self.predict_proba(pd.Series([issue]))
 

@@ -1,4 +1,5 @@
 import pytest
+
 from solvability.models.featurizer import Feature
 
 
@@ -89,8 +90,8 @@ def test_featurizer_embed(samples, featurizer):
     assert embedding.samples[0]["feature1"] is True
     assert embedding.samples[0]["feature2"] is False
     assert embedding.samples[0]["feature3"] is True
-    
-    # And all the metadata should be correct (we know the token counts because 
+
+    # And all the metadata should be correct (we know the token counts because
     # they're mocked, so just count once per sample).
     assert embedding.prompt_tokens == 10 * samples
     assert embedding.completion_tokens == 5 * samples
@@ -116,7 +117,7 @@ def test_featurizer_embed_batch(samples, batch_size, featurizer):
         assert embedding.samples[0]["feature1"] is True
         assert embedding.samples[0]["feature2"] is False
         assert embedding.samples[0]["feature3"] is True
-    
+
         assert len(embedding.samples) == samples
         assert embedding.prompt_tokens == 10 * samples
         assert embedding.completion_tokens == 5 * samples

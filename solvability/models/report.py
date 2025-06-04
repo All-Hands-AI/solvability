@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import Any
+
 from pydantic import BaseModel, Field
-from solvability.models.importance_strategy import ImportanceStrategy
-from solvability.models.config import LLMConfig
+
 from solvability.llm import completion
+from solvability.models.config import LLMConfig
+from solvability.models.importance_strategy import ImportanceStrategy
 
 
 class SolvabilityReport(BaseModel):

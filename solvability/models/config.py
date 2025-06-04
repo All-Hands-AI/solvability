@@ -1,7 +1,8 @@
 from __future__ import annotations
-from pydantic import BaseModel, SecretStr
-import litellm
+
 import dotenv
+import litellm
+from pydantic import BaseModel, SecretStr
 
 
 class LLMConfig(BaseModel):
@@ -25,9 +26,7 @@ class LLMConfig(BaseModel):
         """
         Check if the model supports thinking. This is determined by whether a thinking budget is set.
         """
-        return self.thinking_budget is not None and litellm.supports_reasoning(
-            self.model
-        )
+        return self.thinking_budget is not None and litellm.supports_reasoning(self.model)
 
     def as_kwargs(self) -> dict[str, str]:
         """

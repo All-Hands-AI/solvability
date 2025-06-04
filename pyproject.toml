@@ -44,13 +44,16 @@ python_functions = "test_*"
 addopts = "-v --tb=short"
 
 [tool.black]
-line-length = 88
+line-length = 120
 target-version = ['py312']
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 target-version = "py312"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
+ignore = ["N806"]  # Allow uppercase variable names in functions (common in ML for X, Y)
 
 [tool.mypy]
 python_version = "3.12"

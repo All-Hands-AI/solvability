@@ -1,19 +1,23 @@
 from pathlib import Path
-from solvability.cli.cli import cli
+
 import click
 import rich
 
+from solvability.cli.cli import cli
 from solvability.models import SolvabilityClassifier
+
 
 @cli.group()
 def model():
     """Commands related to the model."""
     pass
 
+
 @model.group()
 def features():
     """Commands related to the features in the classifier."""
     pass
+
 
 @features.command()
 @click.pass_obj
@@ -29,6 +33,7 @@ def list(model_path: Path):
 
     for feature in classifier.featurizer.features:
         rich.print(feature.identifier)
+
 
 @features.command()
 @click.argument("feature_name")
