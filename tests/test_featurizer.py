@@ -1,6 +1,6 @@
 import pytest
 
-from solvability.models.featurizer import Feature
+from solvability.models.featurizer import Feature, FeatureEmbedding
 
 
 def test_feature_to_tool_description_field():
@@ -122,3 +122,122 @@ def test_featurizer_embed_batch(samples, batch_size, featurizer):
         assert embedding.prompt_tokens == 10 * samples
         assert embedding.completion_tokens == 5 * samples
         assert embedding.response_latency >= 0.0
+
+
+def test_featurizer_embed_batch_thread_safety(featurizer, monkeypatch):
+    """Test embed_batch maintains correct ordering and handles concurrent execution safely."""
+    import time
+    from unittest.mock import MagicMock
+
+    # Create unique responses for each issue to verify ordering
+    def create_mock_response(issue_index):
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.tool_calls = [MagicMock()]
+        # Each issue gets a unique feature pattern based on its index
+        mock_response.choices[0].message.tool_calls[0].function.arguments = (
+            f'{{"feature1": {str(issue_index % 2 == 0).lower()}, '
+            f'"feature2": {str(issue_index % 3 == 0).lower()}, '
+            f'"feature3": {str(issue_index % 5 == 0).lower()}}}'
+        )
+        mock_response.usage.prompt_tokens = 10 + issue_index
+        mock_response.usage.completion_tokens = 5 + issue_index
+        return mock_response
+
+    # Track call order and add delays to simulate varying processing times
+    call_count = 0
+    call_order = []
+
+    def mock_completion(*args, **kwargs):
+        nonlocal call_count
+        # Extract issue index from the message content
+        messages = kwargs.get("messages", args[0] if args else [])
+        message_content = messages[1]["content"]
+        issue_index = int(message_content.split("Issue ")[-1])
+        call_order.append(issue_index)
+
+        # Add varying delays to simulate real-world conditions
+        # Later issues process faster to test race conditions
+        delay = 0.01 * (20 - issue_index)
+        time.sleep(delay)
+
+        call_count += 1
+        return create_mock_response(issue_index)
+
+    monkeypatch.setattr("solvability.models.featurizer.completion", mock_completion)
+
+    # Test with a large enough batch to stress concurrency
+    batch_size = 20
+    issues = [f"Issue {i}" for i in range(batch_size)]
+
+    embeddings = featurizer.embed_batch(issues, samples=1)
+
+    # Verify we got all embeddings
+    assert len(embeddings) == batch_size
+
+    # Verify each embedding corresponds to its correct issue index
+    for i, embedding in enumerate(embeddings):
+        assert len(embedding.samples) == 1
+        sample = embedding.samples[0]
+
+        # Check the unique pattern matches the issue index
+        assert sample["feature1"] == (i % 2 == 0)
+        assert sample["feature2"] == (i % 3 == 0)
+        assert sample["feature3"] == (i % 5 == 0)
+
+        # Check token counts match
+        assert embedding.prompt_tokens == 10 + i
+        assert embedding.completion_tokens == 5 + i
+
+    # Verify all issues were processed
+    assert call_count == batch_size
+    assert len(set(call_order)) == batch_size  # All unique indices
+
+
+def test_featurizer_embed_batch_exception_handling(featurizer, monkeypatch):
+    """Test embed_batch handles exceptions in individual tasks correctly."""
+    from unittest.mock import MagicMock
+
+    def mock_completion(*args, **kwargs):
+        # Extract issue index from the message content
+        messages = kwargs.get("messages", args[0] if args else [])
+        message_content = messages[1]["content"]
+        issue_index = int(message_content.split("Issue ")[-1])
+
+        # Make some issues fail
+        if issue_index in [2, 5, 7]:
+            raise ValueError(f"Simulated error for issue {issue_index}")
+
+        # Return normal response for others
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.tool_calls = [MagicMock()]
+        mock_response.choices[0].message.tool_calls[
+            0
+        ].function.arguments = '{"feature1": true, "feature2": false, "feature3": true}'
+        mock_response.usage.prompt_tokens = 10
+        mock_response.usage.completion_tokens = 5
+        return mock_response
+
+    monkeypatch.setattr("solvability.models.featurizer.completion", mock_completion)
+
+    issues = [f"Issue {i}" for i in range(10)]
+
+    # The method should raise an exception when any task fails
+    with pytest.raises(ValueError) as exc_info:
+        featurizer.embed_batch(issues, samples=1)
+
+    # Verify it's one of our expected errors
+    assert "Simulated error for issue" in str(exc_info.value)
+
+
+def test_featurizer_embed_batch_no_none_values(featurizer):
+    """Test that embed_batch never returns None values in the results list."""
+    # Test with various batch sizes to ensure no None values slip through
+    for batch_size in [1, 5, 10, 20]:
+        issues = [f"Issue {i}" for i in range(batch_size)]
+        embeddings = featurizer.embed_batch(issues, samples=1)
+
+        # Verify no None values in results
+        assert all(embedding is not None for embedding in embeddings)
+        assert all(isinstance(embedding, FeatureEmbedding) for embedding in embeddings)
