@@ -79,7 +79,7 @@ class SolvabilityReport(BaseModel):
     Metadata for logging and debugging purposes.
     """
 
-    def summarize(self, llm_config: LLMConfig | None = None) -> str:
+    def summarize(self, llm_config: LLMConfig | None = None) -> str:  # noqa: E501
         """
         Generate a summary of the report using the LLM.
         """
@@ -88,7 +88,8 @@ Convert this SolvabilityReport into a concise executive summary for technical st
 
 Report Data: {self.model_dump()}
 
-Feature importances are computed using SHAP values, indicating the contribution of each feature to the model's predictions. The features are ranked by their SHAP values, with higher values indicating greater importance.
+Feature importances are computed using SHAP values, indicating the contribution of each feature to the model's
+predictions. The features are ranked by their SHAP values, with higher values indicating greater importance.
 
 Format the output as:
 - Lead with the solvability assessment and confidence level (LOW, MEDIUM, HIGH)
@@ -97,7 +98,9 @@ Format the output as:
 
 Do not include any mention of costs or other performance metrics from the report itself.
 
-Include technical information suitable for software engineers and data scientists. DO NOT include direct mentions of feature importance values.
+Include technical information suitable for software engineers and data scientists. DO NOT include direct mentions of
+feature importance values.
+
 Keep the length short, and include recommendations as a simple list.
 """
 

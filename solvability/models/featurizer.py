@@ -99,7 +99,8 @@ class Featurizer(BaseModel):
         Args:
             issue_description: The description of the issue.
 
-            set_cache_content: Whether to set cache content for the message. If only one sample is requested, this should be set to False.
+            set_cache_content: Whether to set cache content for the message. If only one sample is requested, this
+            should be set to False.
         """
         message = {
             "role": "user",
