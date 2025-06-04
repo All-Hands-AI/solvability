@@ -1,7 +1,8 @@
 """
 Utilities for loading and managing pre-trained classifiers.
 
-Assumes that classifiers are stored adjacent to this file in the `solvability/data` directory, using a simple `name + .json` pattern.  # noqa: E501
+Assumes that classifiers are stored adjacent to this file in the `solvability/data` directory, using a simple
+`name + .json` pattern.
 """
 
 from pathlib import Path
