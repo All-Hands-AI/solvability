@@ -23,7 +23,6 @@ dependencies = [
 dev = [
     "pytest>=8.4.0",
     "pytest-cov",
-    "black",
     "ruff",
     "mypy",
 ]
@@ -43,10 +42,6 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --tb=short"
-
-[tool.black]
-line-length = 120
-target-version = ['py312']
 
 [tool.ruff]
 line-length = 120
