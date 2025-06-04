@@ -32,9 +32,9 @@ solvability = "solvability.cli:cli"
 
 [tool.hatch.build.targets.wheel]
 packages = ["solvability"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"solvability/data" = "solvability/data"
+include = [
+    "solvability/data/*.json",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
